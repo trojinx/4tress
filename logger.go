@@ -45,5 +45,4 @@ func Log(message string) {
 		fmt.Println("ERROR: could not write to log file: ", err)
 		return
 	}
-	defer logFile.Close()
 }
