@@ -1,0 +1,4 @@
+port = 6969
+web_firewall = false
+rate_limiting = false
+rate_limiting_mode = api

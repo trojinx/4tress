@@ -1,0 +1,81 @@
+Connection: keep-alive --> HTTP keep alive
+Content-Type: text/event-stream --> SSE (server side)
+Connection: Upgrade && Upgrade: websocket -->Websocket
+
+
+HTTP/1.0 → default close
+
+HTTP/1.1 → default keep-alive --> Half duplex (either client can req, or server can res at a time)
+
+HTTP/2 → persistent, multiplexed  --> No "Connection" header is present!!  --> Full duplex
+    so client can req and server can res at the same time
+
+Then why use web sockets at all, if http 2 is full duplex?
+    bcoz, http limitations still exist, server can't res without client's req
+
+
+
+ws client --> R.P --> Origin server 
+
+
+
+# A response body is delimited by one of three mechanisms: HTTP 1.1:
+
+1) Content-Length
+OR
+2) Transfer-Encoding: chunked
+OR
+3) Connection close (fallback, discouraged)
+
+In most cases, http library (like net/http) will handle above 3 header sending
+
+A HTTP 1.1 req-res lifecycle depends on both server and client
+server --> Idle Timeout
+client --> depends on browser (usually after page reload or Connection pool is full)
+
+Connection : Close --> Header that either server or client can send to tell to close tcp connection after only 1 req-res cycle
+
+1) Content-Length:n bytes
+    Http response is sent in literal bytes
+    eg: This is the response (plain text)
+res is marked complete as soon as n bytes are read
+
+
+2) Transfer-Encoding: chunked:
+If server does not send Content-Length, then Transfer-Encoding is used:
+    Transfer-Encoding: chunked  --> Header
+    Sends data in chunks looking like:
+        <chunk-size-in-hex>\r\n
+        <chunk-data>\r\n
+        <chunk-size-in-hex>\r\n
+        <chunk-data>\r\n
+        ...
+        0\r\n
+        \r\n 
+    Here, 0\r\n\r\n marks as the end of a http response
+
+****Data is sent like this by server, only when server does not send Content-Length
+
+3) Connection close (fallback, discouraged):
+This was default HTTP 1.0 behaviour, and that's why HTTP 1.1 was introduced, that used 1 tcp connection
+for multiple HTTP req-res cycles
+
+
+SSE handeling: HTTP 1.1 only (not for HTTP 2)
+In SSE, we(server side) do not send Content-Length headers, forcing client to rely on Transfer-Encoding: chunked
+So, untill and unless we send 0\r\n\r\n, browser considers it as 1 single response from server
+As we do not send 0\r\n\r\n, we make client-server connected forever (untill any 1 force disconnects)
+server sends hearbeats to avoid browser/client being connection timed out of the response
+
+http.Flush() --> Each Flush() sends a new chunk to the client
+
+
+
+Asymmetric Duplex Over HTTP {HTTP 2 only}
+
+bcoz http 2 is full duplex, client can req and server can res to older req at the same time
+
+usage: client sends normal requests over tcp connection
+       server sends sse streams/event over the same tcp connection
+
+works good for notifications, Live dashboards, Stock tickers (read-only)
