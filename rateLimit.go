@@ -9,7 +9,7 @@ func clearMap() {
 
 func RateLimit(ip string) bool { // return true if IP is rate limited, else return false
 	IpTable[ip]++
-	if IpTable[ip] > 2 {
+	if IpTable[ip] > int8(Settings.RateLimitAfter) {
 		return true
 	}
 	go clearMap()
