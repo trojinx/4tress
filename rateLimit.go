@@ -3,7 +3,7 @@ package main
 import "time"
 
 func clearMap() {
-	time.Sleep(5 * time.Second)
+	time.Sleep(60 * time.Second)
 	clear(IpTable)
 }
 
