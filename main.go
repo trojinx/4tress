@@ -17,44 +17,35 @@ type Client struct { //NOTE: only those fields are used that are required to set
 	Protocol string // http or https
 	Host     string // this is the requested domain
 }
+type ReverseProxySettings struct {
+	Port               string
+	EnableRateLimiting bool
+	EnableWebFireWall  bool
+	RateLimitAfter     int
+}
+
+var Settings ReverseProxySettings
 
 var RoutingTable = map[string]string{}
 var IpTable = map[string]int8{}
 var LogFile *os.File
 var LogFileCreateError error
-var Created bool
 
 func healthCheck(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(200)
 	res.Write([]byte("Server is Healthy!"))
 	defer req.Body.Close()
 }
-func rateLimitCheck(res http.ResponseWriter, req *http.Request) {
-	isRateLimit := RateLimit(req.RemoteAddr)
-	if isRateLimit == true {
-		res.WriteHeader(429)
-		res.Write([]byte("you have been rate limited" + req.RemoteAddr))
-	} else {
-		res.WriteHeader(200)
-		res.Write([]byte("You have not been rate limited" + req.RemoteAddr))
-	}
-}
 
 func main() {
-	Created, LogFileCreateError = CreateLogger()
-	if LogFileCreateError != nil {
-		fmt.Println("OOPS! Could not initialize a logger")
-	} else if Created {
-		fmt.Println("Logger initialized successfully")
-	}
+	ReadConfigJson()
+	CreateLogger()
+	ReadConfig("4tress.config", &RoutingTable)
 
-	go ReadConfig("4tress.config", &RoutingTable)
-	// ReadSettings("4tress.settings")
 	http.HandleFunc("/health", healthCheck)
 	http.HandleFunc("/", ForwardRequest)
-	http.HandleFunc("/rateLimit", rateLimitCheck)
 
-	startError := http.ListenAndServe(":6969", nil)
+	startError := http.ListenAndServe(":"+Settings.Port, nil)
 	if startError != nil {
 		fmt.Println("ERROR: could not start the server: ", startError)
 	}
