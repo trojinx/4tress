@@ -8,16 +8,12 @@ import (
 
 func ForwardRequest(res http.ResponseWriter, req *http.Request) {
 	if RateLimit(req.RemoteAddr) && Settings.EnableRateLimiting {
-		res.WriteHeader(429)
-		res.Header().Add("Retry-After", "60")
-		connection := res.Header().Get("Connection")
-		if connection == "" {
-			res.Header().Add("Connection", "close")
-		} else {
-			res.Header().Set("Connection", "close")
-		}
-		res.Write([]byte("Too many requests"))
+		res.Header().Set("Retry-After", "60")
+		res.Header().Set("Connection", "close")
 		go Log(req.RemoteAddr + " is rate limited")
+
+		res.WriteHeader(http.StatusTooManyRequests)
+		http.ServeFile(res, req, "public/index.html")
 		return
 	}
 
