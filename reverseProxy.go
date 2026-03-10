@@ -7,9 +7,9 @@ import (
 )
 
 func ForwardRequest(res http.ResponseWriter, req *http.Request) {
-	if RateLimit(req.RemoteAddr) {
+	if RateLimit(req.RemoteAddr) && Settings.EnableRateLimiting {
 		res.WriteHeader(429)
-		res.Header().Add("Retry-After", "2")
+		res.Header().Add("Retry-After", "60")
 		connection := res.Header().Get("Connection")
 		if connection == "" {
 			res.Header().Add("Connection", "close")
