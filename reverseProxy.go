@@ -11,9 +11,8 @@ func ForwardRequest(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Retry-After", "60")
 		res.Header().Set("Connection", "close")
 		go Log(req.RemoteAddr + " is rate limited")
-
 		res.WriteHeader(http.StatusTooManyRequests)
-		http.ServeFile(res, req, "public/index.html")
+		http.ServeFile(res, req, "public/tooManyRequests.html")
 		return
 	}
 
@@ -90,7 +89,6 @@ func ForwardRequest(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(originServerRes.StatusCode)
 		buff := make([]byte, 4096)
 		_, copyErr := io.CopyBuffer(res, originServerRes.Body, buff)
-
 		if copyErr != nil {
 			fmt.Println("ERROR: could not copy response body from origin server to a buffer: ", copyErr)
 			res.WriteHeader(500)
