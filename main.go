@@ -38,6 +38,7 @@ func healthCheck(res http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	go clearMap()
 	ReadConfigJson()
 	CreateLogger()
 	ReadConfig("4tress.config", &RoutingTable)
