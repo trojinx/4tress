@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -30,13 +31,19 @@ func ReadConfig(configPath string, routingTable *map[string]string) {
 		ip := strings.TrimSpace(parts[1])
 		(*routingTable)[domain] = ip
 	}
-	// fmt.Println(routingTable)
+	fmt.Println("Mapped all domains to URLs successfully")
 }
 
-// func ReadSettings(settingsPath string) {
-// 	settings, readErr := os.ReadFile(settingsPath)
-// 	if readErr != nil {
-// 		fmt.Println("ERROR: could not read the settings file: ", readErr)
-// 	}
-// 	fmt.Println(string(settings))
-// }
+func ReadConfigJson() {
+	configFile, err := os.ReadFile("4tress.config.json")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = json.Unmarshal(configFile, &Settings)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Successfully read 4tress.config.json")
+}
