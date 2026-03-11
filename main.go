@@ -23,10 +23,13 @@ type ReverseProxySettings struct {
 	EnableWebFireWall  bool
 	RateLimitAfter     int
 }
+type LocalDNS struct {
+	Records map[string]string
+}
 
+var Dns LocalDNS
 var Settings ReverseProxySettings
 
-var RoutingTable = map[string]string{}
 var IpTable = map[string]int8{}
 var LogFile *os.File
 var LogFileCreateError error
@@ -38,10 +41,10 @@ func healthCheck(res http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	ReadRecords() // reads 4tress.records.json
 	go clearMap()
-	ReadConfigJson()
-	CreateLogger()
-	ReadConfig("4tress.config", &RoutingTable)
+	ReadConfigJson() // reads 4tress.config.json
+	CreateLogger()   // creates log.txt file
 
 	http.HandleFunc("/health", healthCheck)
 	http.HandleFunc("/", ForwardRequest)
