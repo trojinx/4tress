@@ -27,7 +27,7 @@ func ForwardRequest(res http.ResponseWriter, req *http.Request) {
 	}
 
 	reverseProxy := ReverseProxy{
-		forwardURL:      RoutingTable[req.Host],
+		forwardURL:      Dns.Records[req.Host],
 		forwardEndpoint: req.URL.String(),
 	}
 	reverseProxy.completeURL = reverseProxy.forwardURL + reverseProxy.forwardEndpoint
@@ -58,7 +58,10 @@ func ForwardRequest(res http.ResponseWriter, req *http.Request) {
 
 		originServerRes, sendErr := reverseProxyClient.Do(forwardReq) // forward the req
 		if sendErr != nil {
-			fmt.Println("ERROR: could not send req: ", sendErr)
+			fmt.Println("ERROR inside reverseProxy.go: could not send req: ", sendErr)
+			Log(sendErr.Error() + " for client IP" + req.RemoteAddr)
+			res.WriteHeader(http.StatusNotFound)
+			res.Write([]byte(sendErr.Error()))
 			return
 		}
 		originServerResHeaderMap := originServerRes.Header
@@ -91,6 +94,7 @@ func ForwardRequest(res http.ResponseWriter, req *http.Request) {
 		_, copyErr := io.CopyBuffer(res, originServerRes.Body, buff)
 		if copyErr != nil {
 			fmt.Println("ERROR: could not copy response body from origin server to a buffer: ", copyErr)
+			Log(copyErr.Error())
 			res.WriteHeader(500)
 			res.Write([]byte("Internal server error"))
 			return
