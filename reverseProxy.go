@@ -30,8 +30,17 @@ func ForwardRequest(res http.ResponseWriter, req *http.Request) {
 		forwardURL:      Dns.Records[req.Host],
 		forwardEndpoint: req.URL.String(),
 	}
-	reverseProxy.completeURL = reverseProxy.forwardURL + reverseProxy.forwardEndpoint
-	//create a new http request instead of reusing the old one, is this causing overhead?????
+
+	url := req.Host + req.RequestURI
+	customRoute := Dns.Records[url]
+
+	if customRoute == "" {
+		reverseProxy.completeURL = reverseProxy.forwardURL + reverseProxy.forwardEndpoint
+	} else {
+		reverseProxy.completeURL = customRoute
+	}
+	fmt.Println(reverseProxy.completeURL)
+
 	forwardReq, reqError := http.NewRequest(req.Method, reverseProxy.completeURL, req.Body)
 	if reqError != nil {
 		fmt.Println("ERROR: could not create a new HTTP request: ", reqError)
