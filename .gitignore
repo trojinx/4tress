@@ -2,3 +2,7 @@ keepAlive
 originServers
 components
 log.txt
+
+# Locally generated Go binaries
+4tress
+4tress.exe

@@ -1,6 +1,6 @@
 {
     "Port": "6969",
     "EnableRateLimiting" : false,
-    "EnableWebFireWall" : false, 
-    "RateLimitAfter": 3
+    "RateLimitAfter": 3,
+    "RateLimitWindowSeconds": 60
 }
